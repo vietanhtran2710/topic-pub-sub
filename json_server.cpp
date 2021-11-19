@@ -17,14 +17,13 @@ using namespace std;
    
 static void *protocol(void* arg)
 {
-    const char* invalid = "Invalid";
 	int sockfd = *((int*) arg);
 	pthread_detach(pthread_self());
     char buff[MAX] = {0};
     
     for (;;) {
         recv(sockfd, buff, sizeof(buff),0);
-		printf("CLIENT:\n%s\n", buff);
+		// printf("CLIENT:\n%s\n", buff);
         
         if (strncmp(buff, "{\n", 2)==0)
         {
@@ -33,17 +32,16 @@ static void *protocol(void* arg)
             string json(buff);
             read.parse(json, data);
             cout << data["data"] << endl;
-            send(sockfd,"OK", 2, 0);
         }
         else 
         {
-            send(sockfd, invalid, sizeof(invalid), 0);
+            // send(sockfd, invalid, sizeof(invalid), 0);
             cout << "Not JSON\n";
-            break;
         }
         memset(buff, 0, MAX);
     }
     close(sockfd);
+    return NULL;
 }
    
 
