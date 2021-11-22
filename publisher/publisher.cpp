@@ -8,6 +8,10 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <iostream>
+#include <jsoncpp/json/json.h>
+#include <QCloseEvent>
+#include <QDir>
+#include <QInputDialog>
 
 #define PORT 8080
 
@@ -16,6 +20,8 @@ publisher::publisher(QWidget *parent)
     , ui(new Ui::publisher)
 {
     ui->setupUi(this);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    connect( ui->tableWidget->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(sectionClicked(int)));
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\n Socket creation error \n");
@@ -55,6 +61,27 @@ publisher::~publisher()
     delete ui;
 }
 
+void publisher::closeEvent(QCloseEvent *event) {
+    thread->stopped = true;
+    Json::Value obj;
+    obj["command"] = "QUIT";
+    Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);
+    char json[1024] = {0};
+    strcpy(json, jsonString.c_str());
+    send(sock, json, sizeof(json), 0);
+    ::close(sock); event->accept();
+}
+
+void publisher::sectionClicked(int index) {
+    std::cout << index << " " << ui->tableWidget->rowCount() << std::endl;
+    bool ok;
+    QString text = QInputDialog::getText(this, tr("Change field name"),
+                                         tr("Field name:"), QLineEdit::Normal,
+                                         "", &ok);
+    if (ok && !text.isEmpty())
+        ui->tableWidget->verticalHeaderItem(index)->setText(text);
+}
+
 void publisher::onSendMessage(QString message) {
     this->ui->label_3->setText(message);
 }
@@ -70,4 +97,22 @@ void publisher::on_pushButton_clicked()
 void publisher::on_pushButton_2_clicked()
 {
     thread->stopped = true;
+}
+
+void publisher::on_pushButton_4_clicked()
+{
+    ui->tableWidget->removeRow(ui->tableWidget->currentRow());
+}
+
+void publisher::on_pushButton_3_clicked()
+{
+    bool ok;
+    QString text = QInputDialog::getText(this, tr("Create new data field"),
+                                         tr("Field name:"), QLineEdit::Normal,
+                                         "", &ok);
+    if (ok && !text.isEmpty()) {
+        int rowPos = ui->tableWidget->rowCount();
+        ui->tableWidget->insertRow( ui->tableWidget->rowCount() );
+        ui->tableWidget->setVerticalHeaderItem(rowPos, new QTableWidgetItem(text));
+    }
 }
