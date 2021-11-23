@@ -20,6 +20,8 @@ publisher::publisher(QWidget *parent)
     , ui(new Ui::publisher)
 {
     ui->setupUi(this);
+    ui->pushButton_5->setDisabled(true);
+    ui->pushButton_2->setDisabled(true);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     connect( ui->tableWidget->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(sectionClicked(int)));
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -88,6 +90,12 @@ void publisher::onSendMessage(QString message) {
 
 void publisher::on_pushButton_clicked()
 {
+    ui->pushButton_5->setDisabled(false);
+    ui->pushButton_2->setDisabled(false);
+    ui->pushButton_6->setDisabled(true);
+    ui->pushButton->setDisabled(true);
+    ui->lineEdit->setDisabled(true);
+    thread->stopped = thread->paused = false;
     thread->topic = ui->lineEdit->text().toStdString();
     if (ui->checkBox->isChecked()) thread->flag = "retain";
     else thread->flag = "";
@@ -97,6 +105,9 @@ void publisher::on_pushButton_clicked()
 void publisher::on_pushButton_2_clicked()
 {
     thread->stopped = true;
+    ui->pushButton->setDisabled(false);
+    ui->pushButton_6->setDisabled(false);
+    ui->lineEdit->setDisabled(false);
 }
 
 void publisher::on_pushButton_4_clicked()
@@ -115,4 +126,11 @@ void publisher::on_pushButton_3_clicked()
         ui->tableWidget->insertRow( ui->tableWidget->rowCount() );
         ui->tableWidget->setVerticalHeaderItem(rowPos, new QTableWidgetItem(text));
     }
+}
+
+void publisher::on_pushButton_5_clicked()
+{
+    thread->paused = true;
+    ui->pushButton->setDisabled(false);
+    ui->pushButton_6->setDisabled(false);
 }
