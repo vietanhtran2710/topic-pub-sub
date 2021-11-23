@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include <QMainWindow>
+#include <QStandardItemModel>
 #include <map>
 #include "thread.h"
 
@@ -19,6 +20,12 @@ public slots:
 
     void onNewSubscriber(QString topicName, int socket);
 
+    void onNewTopic(QString topicName);
+
+    void onQuitTopic(QString topicName);
+
+    void onNodeQuit();
+
 public:
     server(QWidget *parent = nullptr);
     ~server();
@@ -29,10 +36,14 @@ private slots:
 
 private:
     Ui::server *ui;
+    int clientCount;
     std::map<QString, QString> retainedMessage;
     std::map<QString, std::vector<int>*> topicSubscriber;
     std::vector<Thread*> *threads;
+    std::map<QString, int> topicPublishers;
     Thread* acceptThread;
+
+    QStandardItemModel *model;
 
 };
 #endif // SERVER_H

@@ -50,7 +50,7 @@ void Thread::run() {
     }
     else {
         char readBuffer[1024], sendBuffer[1024];
-        while(true) {
+        while(!this->stopped) {
             memset(readBuffer, 0, 1024);
             recv(this->connSocket, readBuffer, sizeof(readBuffer), 0);
             if (strncmp(readBuffer, "{\n", 2)==0)
@@ -59,13 +59,12 @@ void Thread::run() {
                 std::string json(readBuffer);
                 read.parse(json, data);
                 if (data["command"] == "START PUBLISHING") {
-
+                    emit NewTopic(QString::fromStdString(data["topic"].asString()));
                 }
                 else if (data["command"] == "STOP PUBLISHING") {
-
+                    emit QuitTopic(QString::fromStdString(data["topic"].asString()));
                 }
                 else if (data["command"] == "PUBLISH") {
-                    std::cout << "publish" << std::endl;
                     Json::StyledWriter styledWriter;
                     std::string jsonString = styledWriter.write(data["data"]);
                     QString message = QString::fromStdString(jsonString);
@@ -73,7 +72,10 @@ void Thread::run() {
                     QString retain = QString::fromStdString((data["flag"].asString()));
                     emit this->NewMessage(topic, message, retain);
                 }
-                else if (data["command"] == "QUIT") break;
+                else if (data["command"] == "QUIT") {
+                    emit NodeQuit();
+                    break;
+                }
                 else if (data["command"] == "CONNECT") {
                     Json::Value obj;
                     obj["status"] = "CONNECTACK";

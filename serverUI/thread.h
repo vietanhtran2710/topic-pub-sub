@@ -19,6 +19,12 @@ signals:
     void NewMessage(QString, QString, QString);
 
     void NewSubscriber(QString, int);
+
+    void NewTopic(QString);
+
+    void QuitTopic(QString);
+
+    void NodeQuit();
 };
 
 #endif // THREAD_H
