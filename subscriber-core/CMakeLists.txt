@@ -16,4 +16,7 @@ find_package(Qt5Core)
 add_executable(subscriber-core
   main.cpp
 )
-target_link_libraries(subscriber-core Qt5::Core)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
+link_libraries(${JSONCPP_LIBRARIES})
+target_link_libraries(subscriber-core Qt5::Core ${JSONCPP_LIBRARIES})
