@@ -105,6 +105,16 @@ void publisher::on_pushButton_clicked()
 void publisher::on_pushButton_2_clicked()
 {
     thread->stopped = true;
+    Json::Value obj;
+    obj["command"] = "STOP PUBLISHING";
+    obj["topic"] = ui->lineEdit->text().toStdString();
+    Json::StyledWriter styledWriter;
+    std::string jsonString = styledWriter.write(obj);
+    char json[1024];
+    memset(json, 0, 1024);
+    strcpy(json, jsonString.c_str());
+    send(sock, json, sizeof(json), 0);
+    thread->topicRegistered = false;
     ui->pushButton->setDisabled(false);
     ui->pushButton_6->setDisabled(false);
     ui->lineEdit->setDisabled(false);

@@ -48,17 +48,5 @@ void Thread::run()
         timestamp++;
         emit SendMessage(QString::fromStdString(jsonString));
     }
-    if (stopped) {
-        Json::Value obj;
-        obj["command"] = "STOP PUBLISHING";
-        obj["topic"] = this->topic;
-        Json::StyledWriter styledWriter;
-        std::string jsonString = styledWriter.write(obj);
-        char json[1024];
-        memset(json, 0, 1024);
-        strcpy(json, jsonString.c_str());
-        send(this->socket, json, sizeof(json), 0);
-        this->topicRegistered = false;
-    }
     return;
 }
