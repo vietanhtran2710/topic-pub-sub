@@ -30,16 +30,23 @@ if(ANDROID)
   add_library(subscriber SHARED
     main.cpp
     subscriber.cpp
+    thread.cpp
     subscriber.h
+    thread.h
     subscriber.ui
   )
 else()
   add_executable(subscriber
     main.cpp
     subscriber.cpp
+    thread.cpp
     subscriber.h
+    thread.h
     subscriber.ui
   )
 endif()
 
-target_link_libraries(subscriber PRIVATE Qt5::Widgets)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
+link_libraries(${JSONCPP_LIBRARIES})
+target_link_libraries(subscriber PRIVATE Qt5::Widgets ${JSONCPP_LIBRARIES})
