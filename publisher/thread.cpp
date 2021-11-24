@@ -44,6 +44,7 @@ void Thread::run()
         memset(json, 0, 1024);
         strcpy(json, jsonString.c_str());
         send(this->socket, json, sizeof(json), 0);
+        QThread::msleep(100);
         timestamp++;
         emit SendMessage(QString::fromStdString(jsonString));
     }
