@@ -109,6 +109,12 @@ void subscriber::on_pushButton_2_clicked()
 {
     subscriber::thread->stopped = true;
     subscriber::thread->exit();
+    Json::Value obj;
+    obj["command"] = "STOP SUBSCRIBING";
+    Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);
+    char json[1024] = {0};
+    strcpy(json, jsonString.c_str());
+    send(sock, json, sizeof(json), 0);
 }
 
 void subscriber::on_pushButton_3_clicked()

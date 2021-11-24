@@ -22,4 +22,5 @@ void Thread::run() {
         recv(this->socket, buffer, sizeof(buffer), 0);
         emit NewMessage(QString::fromUtf8(buffer));
     }
+    return;
 }
