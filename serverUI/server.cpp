@@ -47,6 +47,7 @@ void server::onNewClient(int socket) {
     connect(this->threads->at(threads->size() - 1), SIGNAL(NewSubscriber(QString, int)), this, SLOT(onNewSubscriber(QString, int)));
     connect(this->threads->at(threads->size() - 1), SIGNAL(NewTopic(QString)), this, SLOT(onNewTopic(QString)));
     connect(this->threads->at(threads->size() - 1), SIGNAL(QuitTopic(QString)), this, SLOT(onQuitTopic(QString)));
+    connect(this->threads->at(threads->size() - 1), SIGNAL(NodeQuit()), this, SLOT(onNodeQuit()));
     this->threads->back()->start();
     server::clientCount++;
     ui->label_2->setText(QString::number(server::clientCount));
