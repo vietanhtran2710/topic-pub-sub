@@ -76,20 +76,39 @@ void server::onNewSubscriber(QString topicName, int socket) {
     std::cout << "Got new subscriber" << std::endl;
     if (topicSubscriber.find(topicName) == topicSubscriber.end() ) {
         topicSubscriber[topicName] = new std::vector<int>(1, socket);
+        if (topicPublishers.find(topicName) == topicPublishers.end()) {
+            QList<QStandardItem *> items;
+            items.append(new QStandardItem(topicName));
+            items.append(new QStandardItem("0"));
+            items.append(new QStandardItem("1"));
+            model->appendRow(items);
+        }
+        else {
+            QStandardItem *findResult = model->findItems(topicName)[0];
+            model->setItem(findResult->row(), findResult->column() + 2, new QStandardItem("1"));
+        }
     } else {
         topicSubscriber[topicName]->push_back(socket);
+        QStandardItem *findResult = model->findItems(topicName)[0];
+        model->setItem(findResult->row(), findResult->column() + 2, new QStandardItem(QString::number(topicSubscriber[topicName]->size())));
     }
 }
 
 void server::onNewTopic(QString topicName) {
     std::cout << "Got new topic" << std::endl;
     if (topicPublishers.find(topicName) == topicPublishers.end()) {
-        topicPublishers[topicName] = 1;
-        QList<QStandardItem *> items;
-        items.append(new QStandardItem(topicName));
-        items.append(new QStandardItem("1"));
-        items.append(new QStandardItem("0"));
-        model->appendRow(items);
+        if (topicSubscriber.find(topicName) == topicSubscriber.end()) {
+            topicPublishers[topicName] = 1;
+            QList<QStandardItem *> items;
+            items.append(new QStandardItem(topicName));
+            items.append(new QStandardItem("1"));
+            items.append(new QStandardItem("0"));
+            model->appendRow(items);
+        }
+        else {
+            QStandardItem *findResult = model->findItems(topicName)[0];
+            model->setItem(findResult->row(), findResult->column() + 1, new QStandardItem("1"));
+        }
     }
     else {
         topicPublishers[topicName]++;
@@ -114,6 +133,10 @@ void server::onQuitTopic(QString topicName) {
 void server::onNodeQuit() {
     server::clientCount--;
     ui->label_2->setText(QString::number(server::clientCount));
+}
+
+void server::onSubscriberQuit(int socket) {
+
 }
 
 

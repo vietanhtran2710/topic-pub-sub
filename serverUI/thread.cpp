@@ -87,6 +87,9 @@ void Thread::run() {
                     std::cout << "subs" << std::endl;
                     emit this->NewSubscriber(QString::fromStdString(data["topic"].asString()), this->connSocket);
                 }
+                else if (data["command"] == "STOP SUBSCRIBING") {
+                    emit this->SubscriberQuit(this->connSocket);
+                }
             }
             else std::cout << "Not JSON\n";
         }

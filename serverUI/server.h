@@ -26,6 +26,8 @@ public slots:
 
     void onNodeQuit();
 
+    void onSubscriberQuit(int socket);
+
 public:
     server(QWidget *parent = nullptr);
     ~server();
