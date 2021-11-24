@@ -70,6 +70,7 @@ subscriber::subscriber(QWidget *parent)
 //            alert->show();
         }
     }
+    subscriber::displaying = false;
 }
 
 subscriber::~subscriber()
@@ -90,7 +91,10 @@ void subscriber::closeEvent(QCloseEvent *event) {
 }
 
 void subscriber::onNewMessage(QString message) {
+    while(displaying);
+    displaying = true;
     ui->label_4->setText(message);
+    displaying = false;
 }
 
 void subscriber::on_pushButton_clicked()

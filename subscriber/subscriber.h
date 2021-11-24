@@ -33,6 +33,7 @@ private:
     Ui::subscriber *ui;
     int sock = 0;
     struct sockaddr_in serv_addr;
+    bool displaying;
     Thread *thread;
 };
 #endif // SUBSCRIBER_H
