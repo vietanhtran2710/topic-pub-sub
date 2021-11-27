@@ -23,6 +23,7 @@ publisher::publisher(QWidget *parent)
     ui->pushButton_5->setDisabled(true);
     ui->pushButton_2->setDisabled(true);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableWidget->verticalHeaderItem(0)->setText("data");
     connect( ui->tableWidget->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(sectionClicked(int)));
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
@@ -56,6 +57,8 @@ publisher::publisher(QWidget *parent)
     }
     publisher::thread = new Thread(this, sock, "", "");
     connect(thread, SIGNAL(SendMessage(QString)), this, SLOT(onSendMessage(QString)));
+    ui->checkBox_2->setChecked(true);
+    ui->tableWidget->setItem(0, 0, new QTableWidgetItem("0"));
 }
 
 publisher::~publisher()
@@ -75,13 +78,17 @@ void publisher::closeEvent(QCloseEvent *event) {
 }
 
 void publisher::sectionClicked(int index) {
-    std::cout << index << " " << ui->tableWidget->rowCount() << std::endl;
+    QString oldName = ui->tableWidget->verticalHeaderItem(index)->text();
     bool ok;
     QString text = QInputDialog::getText(this, tr("Change field name"),
                                          tr("Field name:"), QLineEdit::Normal,
                                          "", &ok);
-    if (ok && !text.isEmpty())
+    if (ok && !text.isEmpty()) {
         ui->tableWidget->verticalHeaderItem(index)->setText(text);
+        QString oldValue = publisher::thread->customData[oldName];
+        publisher::thread->customData.erase(oldName);
+        publisher::thread->customData[text] = oldValue;
+    }
 }
 
 void publisher::onSendMessage(QString message) {
@@ -92,6 +99,7 @@ void publisher::on_pushButton_clicked()
 {
     ui->pushButton_5->setDisabled(false);
     ui->pushButton_2->setDisabled(false);
+    ui->groupBox_2->setDisabled(true);
     ui->pushButton_6->setDisabled(true);
     ui->pushButton->setDisabled(true);
     ui->lineEdit->setDisabled(true);
@@ -115,6 +123,7 @@ void publisher::on_pushButton_2_clicked()
     strcpy(json, jsonString.c_str());
     send(sock, json, sizeof(json), 0);
     thread->topicRegistered = false;
+    ui->groupBox_2->setDisabled(false);
     ui->pushButton->setDisabled(false);
     ui->pushButton_6->setDisabled(false);
     ui->lineEdit->setDisabled(false);
@@ -122,6 +131,7 @@ void publisher::on_pushButton_2_clicked()
 
 void publisher::on_pushButton_4_clicked()
 {
+    publisher::thread->customData.erase(ui->tableWidget->verticalHeaderItem(ui->tableWidget->currentRow())->text());
     ui->tableWidget->removeRow(ui->tableWidget->currentRow());
 }
 
@@ -135,6 +145,7 @@ void publisher::on_pushButton_3_clicked()
         int rowPos = ui->tableWidget->rowCount();
         ui->tableWidget->insertRow( ui->tableWidget->rowCount() );
         ui->tableWidget->setVerticalHeaderItem(rowPos, new QTableWidgetItem(text));
+        publisher::thread->customData[ui->tableWidget->verticalHeaderItem(rowPos)->text()] = "";
     }
 }
 
@@ -143,4 +154,18 @@ void publisher::on_pushButton_5_clicked()
     thread->paused = true;
     ui->pushButton->setDisabled(false);
     ui->pushButton_6->setDisabled(false);
+    ui->groupBox_2->setDisabled(false);
+}
+
+void publisher::on_checkBox_2_stateChanged(int arg1)
+{
+    ui->tableWidget->setDisabled(ui->checkBox_2->isChecked());
+    ui->pushButton_3->setDisabled(ui->checkBox_2->isChecked());
+    ui->pushButton_4->setDisabled(ui->checkBox_2->isChecked());
+    publisher::thread->automaticData = ui->checkBox_2->isChecked();
+}
+
+void publisher::on_tableWidget_cellChanged(int row, int column)
+{
+    publisher::thread->customData[ui->tableWidget->verticalHeaderItem(row)->text()] = ui->tableWidget->item(row, 0)->text();
 }

@@ -1,4 +1,5 @@
 #include<QThread>
+#include<map>
 
 #ifndef THREAD_H
 #define THREAD_H
@@ -10,7 +11,8 @@ public:
     explicit Thread(QObject *parent = 0, int socket = 0, std::string topic = "", std::string flag = "");
     int socket, timestamp; std::string topic, flag;
     void run();
-    bool stopped, paused, topicRegistered;
+    bool stopped, paused, topicRegistered, automaticData;
+    std::map<QString, QString> customData;
 signals:
     void SendMessage(QString);
 public slots:

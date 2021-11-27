@@ -36,6 +36,10 @@ private slots:
 
     void on_pushButton_5_clicked();
 
+    void on_checkBox_2_stateChanged(int arg1);
+
+    void on_tableWidget_cellChanged(int row, int column);
+
 private:
     Ui::publisher *ui;
     int timestamp;

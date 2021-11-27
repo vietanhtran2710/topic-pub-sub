@@ -2,6 +2,7 @@
 #include <jsoncpp/json/json.h>
 #include <sys/socket.h>
 #include <iostream>
+#include <QDateTime>
 
 Thread::Thread(QObject *parent, int _socket, std::string _topic, std::string _flag): QThread(parent)
 {
@@ -12,6 +13,8 @@ Thread::Thread(QObject *parent, int _socket, std::string _topic, std::string _fl
     this->stopped = false;
     this->paused = false;
     this->topicRegistered = false;
+    this->automaticData = true;
+    this->customData["data"] = "0";
 }
 
 void Thread::run()
@@ -29,11 +32,18 @@ void Thread::run()
         this->topicRegistered = true;
     }
     while (!stopped && !paused) {
-        double temperature = (double) (-20 + (rand() % 70));
-        Json::Value jdata;
-        jdata["value"] = temperature;
-        jdata["timestamp"] = timestamp;
-        Json::Value obj;
+        Json::Value jdata, obj;
+        jdata["timestamp"] = QDateTime::currentMSecsSinceEpoch();
+        if (this->automaticData) {
+            jdata["value"] = rand() % 1000;
+        }
+        else {
+            for(std::map<QString, QString>::iterator iter = customData.begin(); iter != customData.end(); ++iter) {
+                QString key =  iter->first;
+                QString value = iter->second;
+                jdata[key.toStdString()] = value.toStdString();
+            }
+        }
         obj["command"] = "PUBLISH";
         obj["topic"] = this->topic;
         obj["data"] = jdata;
