@@ -10,6 +10,7 @@
 #include <QCloseEvent>
 #include <QStandardItemModel>
 #include <QStandardItem>
+#include <algorithm>
 
 server::server(QWidget *parent)
     : QMainWindow(parent)
@@ -48,6 +49,7 @@ void server::onNewClient(int socket) {
     connect(this->threads->at(threads->size() - 1), SIGNAL(NewTopic(QString)), this, SLOT(onNewTopic(QString)));
     connect(this->threads->at(threads->size() - 1), SIGNAL(QuitTopic(QString)), this, SLOT(onQuitTopic(QString)));
     connect(this->threads->at(threads->size() - 1), SIGNAL(NodeQuit()), this, SLOT(onNodeQuit()));
+    connect(this->threads->at(threads->size() - 1), SIGNAL(SubscriberQuit(int, QString)), this, SLOT(onSubscriberQuit(int, QString)));
     this->threads->back()->start();
     server::clientCount++;
     ui->label_2->setText(QString::number(server::clientCount));
@@ -61,7 +63,6 @@ void server::onNewMessage(QString topicName, QString message, QString retainFlag
             }
         }
         else {
-            std::cout << topicSubscriber[topicName]->size() << std::endl;
             for (int i = 0; i < topicSubscriber[topicName]->size(); i++) {
                 int socket = topicSubscriber[topicName]->at(i);
                 char sendBuffer[1024] = {0};
@@ -73,7 +74,6 @@ void server::onNewMessage(QString topicName, QString message, QString retainFlag
 }
 
 void server::onNewSubscriber(QString topicName, int socket) {
-    std::cout << "Got new subscriber" << std::endl;
     if (topicSubscriber.find(topicName) == topicSubscriber.end() ) {
         topicSubscriber[topicName] = new std::vector<int>(1, socket);
         if (topicPublishers.find(topicName) == topicPublishers.end()) {
@@ -95,7 +95,6 @@ void server::onNewSubscriber(QString topicName, int socket) {
 }
 
 void server::onNewTopic(QString topicName) {
-    std::cout << "Got new topic" << std::endl;
     if (topicPublishers.find(topicName) == topicPublishers.end()) {
         if (topicSubscriber.find(topicName) == topicSubscriber.end()) {
             topicPublishers[topicName] = 1;
@@ -106,6 +105,7 @@ void server::onNewTopic(QString topicName) {
             model->appendRow(items);
         }
         else {
+            topicPublishers[topicName] = 1;
             QStandardItem *findResult = model->findItems(topicName)[0];
             model->setItem(findResult->row(), findResult->column() + 1, new QStandardItem("1"));
         }
@@ -119,10 +119,15 @@ void server::onNewTopic(QString topicName) {
 
 void server::onQuitTopic(QString topicName) {
     std::cout << "Quit topic" << std::endl;
+    std::cout << topicPublishers[topicName] << std::endl;
     topicPublishers[topicName]--;
+    std::cout << topicPublishers[topicName] << std::endl;
     QStandardItem *findResult = model->findItems(topicName)[0];
     if (topicPublishers[topicName] == 0) {
-        model->removeRow(findResult->row());
+        if (topicSubscriber.find(topicName) == topicSubscriber.end())
+            model->removeRow(findResult->row());
+        else
+            model->setItem(findResult->row(), findResult->column() + 1, new QStandardItem(QString::number(topicPublishers[topicName])));
         topicPublishers.erase(topicName);
     }
     else {
@@ -135,8 +140,23 @@ void server::onNodeQuit() {
     ui->label_2->setText(QString::number(server::clientCount));
 }
 
-void server::onSubscriberQuit(int socket) {
-
+void server::onSubscriberQuit(int socket, QString topic) {
+    if (topicSubscriber.find(topic) == topicSubscriber.end()) return;
+    std::vector<int>::iterator it = std::find(topicSubscriber[topic]->begin(), topicSubscriber[topic]->end(), socket);
+    if (it == topicSubscriber[topic]->end()) {
+        return;
+    }
+    topicSubscriber[topic]->erase(std::remove(topicSubscriber[topic]->begin(), topicSubscriber[topic]->end(), socket), topicSubscriber[topic]->end());
+    QStandardItem *findResult = model->findItems(topic)[0];
+    if (topicSubscriber[topic]->size() == 0) {
+        topicSubscriber.erase(topic);
+        if (topicPublishers.find(topic) == topicPublishers.end())
+            model->removeRow(findResult->row());
+        else
+            model->setItem(findResult->row(), findResult->column() + 2, new QStandardItem(QString::number(0)));
+    }
+    else
+        model->setItem(findResult->row(), findResult->column() + 2, new QStandardItem(QString::number(topicSubscriber[topic]->size())));
 }
 
 
