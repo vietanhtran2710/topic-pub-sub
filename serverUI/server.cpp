@@ -50,6 +50,7 @@ void server::onNewClient(int socket) {
     connect(this->threads->at(threads->size() - 1), SIGNAL(QuitTopic(QString)), this, SLOT(onQuitTopic(QString)));
     connect(this->threads->at(threads->size() - 1), SIGNAL(NodeQuit()), this, SLOT(onNodeQuit()));
     connect(this->threads->at(threads->size() - 1), SIGNAL(SubscriberQuit(int, QString)), this, SLOT(onSubscriberQuit(int, QString)));
+    connect(this->threads->at(threads->size() - 1), SIGNAL(GetTopic(int)), this, SLOT(onGetTopic(int)));
     this->threads->back()->start();
     server::clientCount++;
     ui->label_2->setText(QString::number(server::clientCount));
@@ -157,6 +158,23 @@ void server::onSubscriberQuit(int socket, QString topic) {
     }
     else
         model->setItem(findResult->row(), findResult->column() + 2, new QStandardItem(QString::number(topicSubscriber[topic]->size())));
+}
+
+void server::onGetTopic(int _socket) {
+    std::string topics = "";
+    if (topicPublishers.size() == 0) {
+        topics = "NO TOPIC AVAILABLE";
+    }
+    else {
+        for(std::map<QString, int>::iterator iter = topicPublishers.begin(); iter != topicPublishers.end(); ++iter) {
+            QString key =  iter->first;
+            topics += key.toStdString() + ";";
+        }
+    }
+    char sendBuffer[1024] = {0};
+    strcpy(sendBuffer, topics.c_str());
+    std::cout << topics << std::endl;
+    send(_socket, sendBuffer, strlen(sendBuffer), 0);
 }
 
 

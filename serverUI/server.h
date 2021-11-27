@@ -28,6 +28,8 @@ public slots:
 
     void onSubscriberQuit(int socket, QString topic);
 
+    void onGetTopic(int socket);
+
 public:
     server(QWidget *parent = nullptr);
     ~server();

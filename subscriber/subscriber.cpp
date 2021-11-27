@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QCloseEvent>
+#include <QStringListModel>
 #include "thread.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -17,6 +18,9 @@ subscriber::subscriber(QWidget *parent)
     , ui(new Ui::subscriber)
 {
     ui->setupUi(this);
+    model = new QStringListModel(this);
+    ui->listView->setModel(model);
+    ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
@@ -62,12 +66,7 @@ subscriber::subscriber(QWidget *parent)
         std::string json(buffer);
         read.parse(json, data);
         if (data["status"] == "CONNECTACK") {
-//            QMessageBox *alert = new QMessageBox(
-//                QMessageBox::Information,
-//                "CONNECTION SUCCESS",
-//                "CONNECTACK received"
-//            );
-//            alert->show();
+            ui->pushButton_3->click();
         }
     }
     subscriber::displaying = false;
@@ -122,5 +121,17 @@ void subscriber::on_pushButton_2_clicked()
 
 void subscriber::on_pushButton_3_clicked()
 {
-
+    Json::Value obj;
+    obj["command"] = "GET ALL TOPICS";
+    Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);
+    char json[1024] = {0};
+    strcpy(json, jsonString.c_str());
+    send(sock, json, sizeof(json), 0);
+    char buffer[1024] = {0};
+    recv(sock, buffer, sizeof(buffer), 0);
+    std::cout << buffer << std::endl;
+    std::string str(buffer);
+    QString result = QString::fromStdString(str);
+    QStringList topics = result.split(";");
+    model->setStringList(topics);
 }

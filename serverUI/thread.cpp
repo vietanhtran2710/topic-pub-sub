@@ -91,6 +91,9 @@ void Thread::run() {
                     QString topic = QString::fromStdString(data["topic"].asString());
                     emit this->SubscriberQuit(this->connSocket, topic);
                 }
+                else if (data["command"] == "GET ALL TOPICS") {
+                    emit this->GetTopic(this->connSocket);
+                }
             }
             else std::cout << "Not JSON\n";
         }

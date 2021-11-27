@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <QStringListModel>
 #include <unistd.h>
 #include "thread.h"
 
@@ -35,5 +36,6 @@ private:
     struct sockaddr_in serv_addr;
     bool displaying;
     Thread *thread;
+    QStringListModel *model;
 };
 #endif // SUBSCRIBER_H

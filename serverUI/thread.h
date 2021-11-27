@@ -27,6 +27,8 @@ signals:
     void NodeQuit();
 
     void SubscriberQuit(int, QString);
+
+    void GetTopic(int);
 };
 
 #endif // THREAD_H
