@@ -100,7 +100,9 @@ void subscriber::onNewMessage(QString message) {
 void subscriber::on_pushButton_clicked()
 {
     if (ui->lineEdit->text() != "") {
+        std::cout << "clicked" << std::endl;
         subscriber::thread->topic = ui->lineEdit->text().toStdString();
+        subscriber::thread->stopped = false;
         subscriber::thread->start();
     }
 }
@@ -108,9 +110,10 @@ void subscriber::on_pushButton_clicked()
 void subscriber::on_pushButton_2_clicked()
 {
     subscriber::thread->stopped = true;
-    subscriber::thread->exit();
+    subscriber::thread->terminate();
     Json::Value obj;
     obj["command"] = "STOP SUBSCRIBING";
+    obj["topic"] = ui->lineEdit->text().toStdString();
     Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);
     char json[1024] = {0};
     strcpy(json, jsonString.c_str());

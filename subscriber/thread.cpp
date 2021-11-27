@@ -1,15 +1,17 @@
 #include "thread.h"
 #include <jsoncpp/json/json.h>
 #include <sys/socket.h>
+#include <iostream>
 
 Thread::Thread(QObject *parent, int _socket, std::string _topic): QThread(parent)
 {
     this->socket = _socket;
     this->topic = _topic;
+    this->stopped = false;
 }
 
 void Thread::run() {
-    this->stopped = false;
+    std::cout << "Started" << std::endl;
     Json::Value obj; Json::StyledWriter styledWriter;
     obj["command"] = "SUBSCRIBE"; obj["topic"] = this->topic;
     std::string jsonString = styledWriter.write(obj);
