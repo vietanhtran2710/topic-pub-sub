@@ -127,6 +127,8 @@ void publisher::on_pushButton_2_clicked()
     ui->pushButton->setDisabled(false);
     ui->pushButton_6->setDisabled(false);
     ui->lineEdit->setDisabled(false);
+    ui->pushButton_2->setDisabled(true);
+    ui->pushButton_5->setDisabled(true);
 }
 
 void publisher::on_pushButton_4_clicked()
@@ -155,6 +157,7 @@ void publisher::on_pushButton_5_clicked()
     ui->pushButton->setDisabled(false);
     ui->pushButton_6->setDisabled(false);
     ui->groupBox_2->setDisabled(false);
+    ui->pushButton_5->setDisabled(true);
 }
 
 void publisher::on_checkBox_2_stateChanged(int arg1)
