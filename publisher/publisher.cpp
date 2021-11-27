@@ -67,7 +67,10 @@ publisher::~publisher()
 }
 
 void publisher::closeEvent(QCloseEvent *event) {
+    if (!thread->stopped) ui->pushButton_2->click();
     thread->stopped = true;
+    thread->exit();
+    thread->terminate();
     Json::Value obj;
     obj["command"] = "QUIT";
     Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);

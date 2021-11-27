@@ -80,7 +80,11 @@ subscriber::~subscriber()
 }
 
 void subscriber::closeEvent(QCloseEvent *event) {
+    if (!thread->stopped) ui->pushButton_2->click();
     subscriber::thread->stopped = true;
+    thread->stopped = true;
+    thread->exit();
+    thread->terminate();
     Json::Value obj;
     obj["command"] = "QUIT";
     Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);
