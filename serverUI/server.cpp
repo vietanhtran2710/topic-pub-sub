@@ -35,10 +35,14 @@ server::~server()
 }
 
 void server::closeEvent(QCloseEvent *event) {
+    ::close(acceptThread->servSock);
     server::acceptThread->stopped = true;
     server::acceptThread->exit();
-    for (int i = 0; i < server::threads->size(); i++)
+    server::acceptThread->terminate();
+    for (int i = 0; i < server::threads->size(); i++) {
         server::threads->at(i)->exit();
+        server::threads->at(i)->terminate();
+    }
     event->accept();
 }
 

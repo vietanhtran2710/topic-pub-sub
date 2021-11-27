@@ -11,6 +11,7 @@ public:
     explicit Thread(QObject *parent = 0, int type = 0, int socket = 0);
     void run();
     bool stopped;
+    int servSock;
 private:
     int type, connSocket;
 signals:

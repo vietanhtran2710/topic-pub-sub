@@ -17,11 +17,11 @@ Thread::Thread(QObject *parent, int _type, int _socket): QThread(parent)
 void Thread::run() {
     if (this->type == 0) {
         int listenPort = SERVER_PORT;
-        int servSock, cliSock;
+        int cliSock;
         struct sockaddr_in servSockAddr, cliAddr;
         int servSockLen, cliAddrLen;
 
-        servSock = socket(AF_INET, SOCK_STREAM, 0);
+        this->servSock = socket(AF_INET, SOCK_STREAM, 0);
         bzero(&servSockAddr, sizeof(servSockAddr));
         servSockAddr.sin_family = AF_INET;
         servSockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -29,23 +29,23 @@ void Thread::run() {
 
         servSockLen = sizeof(servSockAddr);
 
-        if (bind(servSock, (struct sockaddr*) &servSockAddr, servSockLen) < 0)
+        if (bind(this->servSock, (struct sockaddr*) &servSockAddr, servSockLen) < 0)
         {
             perror("bind");
             exit(1);
         }
-        if (listen(servSock, 10) < 0)
+        if (listen(this->servSock, 10) < 0)
         {
             perror("listen");
             exit(1);
         }
         while (!this->stopped) {
             std::cout << "Waiting for a client ..." << std::endl;
-            cliSock = accept(servSock, (struct sockaddr *) &cliAddr, (socklen_t *) &cliAddrLen);
+            cliSock = accept(this->servSock, (struct sockaddr *) &cliAddr, (socklen_t *) &cliAddrLen);
             std::cout << "Received a connection from a client " << inet_ntoa(cliAddr.sin_addr) << std::endl;
             emit this->NewClient(cliSock);
         }
-        close(servSock);
+        close(this->servSock);
         return;
     }
     else {
