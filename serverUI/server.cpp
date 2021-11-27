@@ -170,6 +170,7 @@ void server::onGetTopic(int _socket) {
             QString key =  iter->first;
             topics += key.toStdString() + ";";
         }
+        topics.pop_back();
     }
     char sendBuffer[1024] = {0};
     strcpy(sendBuffer, topics.c_str());

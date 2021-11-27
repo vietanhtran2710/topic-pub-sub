@@ -35,6 +35,7 @@ private:
     int sock = 0;
     struct sockaddr_in serv_addr;
     bool displaying;
+    std::string currentTopic;
     Thread *thread;
     QStringListModel *model;
 };

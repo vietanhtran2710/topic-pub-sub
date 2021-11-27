@@ -21,6 +21,8 @@ subscriber::subscriber(QWidget *parent)
     model = new QStringListModel(this);
     ui->listView->setModel(model);
     ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->pushButton_2->setDisabled(true);
+    subscriber::currentTopic = "";
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
@@ -99,11 +101,20 @@ void subscriber::onNewMessage(QString message) {
 void subscriber::on_pushButton_clicked()
 {
     if (ui->lineEdit->text() != "") {
-        std::cout << "clicked" << std::endl;
-        subscriber::thread->topic = ui->lineEdit->text().toStdString();
-        subscriber::thread->stopped = false;
-        subscriber::thread->start();
+        subscriber::currentTopic = ui->lineEdit->text().toStdString();
     }
+    else {
+        QString newTopic = ui->listView->currentIndex().data(Qt::DisplayRole).toString();
+        if (newTopic != "") {
+            subscriber::currentTopic = newTopic.toStdString();
+        }
+    }
+    subscriber::thread->topic = subscriber::currentTopic;
+    subscriber::thread->stopped = false;
+    ui->pushButton_3->setDisabled(true);
+    ui->pushButton->setDisabled(true);
+    ui->pushButton_2->setDisabled(false);
+    subscriber::thread->start();
 }
 
 void subscriber::on_pushButton_2_clicked()
@@ -112,11 +123,15 @@ void subscriber::on_pushButton_2_clicked()
     subscriber::thread->terminate();
     Json::Value obj;
     obj["command"] = "STOP SUBSCRIBING";
-    obj["topic"] = ui->lineEdit->text().toStdString();
+    obj["topic"] = subscriber::currentTopic;
+    subscriber::currentTopic = "";
     Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);
     char json[1024] = {0};
     strcpy(json, jsonString.c_str());
     send(sock, json, sizeof(json), 0);
+    ui->pushButton->setDisabled(false);
+    ui->pushButton_3->setDisabled(false);
+    ui->pushButton_2->setDisabled(true);
 }
 
 void subscriber::on_pushButton_3_clicked()
