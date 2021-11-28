@@ -181,6 +181,7 @@ void publisher::on_pushButton_6_clicked()
 {
     ui->pushButton_2->setDisabled(false);
     if (ui->checkBox->isChecked()) thread->flag = "retain";
+    else thread->flag = "";
     if (thread->topicRegistered && thread->topic != ui->lineEdit->text().toStdString()) {
         thread->stopped = true;
         Json::Value obj;

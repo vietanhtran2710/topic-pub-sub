@@ -61,20 +61,18 @@ void server::onNewClient(int socket) {
 }
 
 void server::onNewMessage(QString topicName, QString message, QString retainFlag) {
+    std::cout << retainFlag.toStdString() << std::endl;
     if (topicSubscriber.find(topicName) != topicSubscriber.end()) {
-        if (topicSubscriber[topicName]->size() == 0) {
-            if (retainFlag == "retain") {
-                retainedMessage[topicName] = message;
-            }
+        for (int i = 0; i < topicSubscriber[topicName]->size(); i++) {
+            int socket = topicSubscriber[topicName]->at(i);
+            char sendBuffer[1024] = {0};
+            strcpy(sendBuffer, message.toLocal8Bit().data());
+            send(socket, sendBuffer, strlen(sendBuffer), 0);
         }
-        else {
-            for (int i = 0; i < topicSubscriber[topicName]->size(); i++) {
-                int socket = topicSubscriber[topicName]->at(i);
-                char sendBuffer[1024] = {0};
-                strcpy(sendBuffer, message.toLocal8Bit().data());
-                send(socket, sendBuffer, strlen(sendBuffer), 0);
-            }
-        }
+    }
+    if (retainFlag.toStdString() == "retain") {
+        std::cout << "retained" << std::endl;
+        retainedMessage[topicName] = message;
     }
 }
 
@@ -96,6 +94,12 @@ void server::onNewSubscriber(QString topicName, int socket) {
         topicSubscriber[topicName]->push_back(socket);
         QStandardItem *findResult = model->findItems(topicName)[0];
         model->setItem(findResult->row(), findResult->column() + 2, new QStandardItem(QString::number(topicSubscriber[topicName]->size())));
+    }
+    if (retainedMessage.find(topicName) != retainedMessage.end()) {
+        char buffer[1024] = {0};
+        strcpy(buffer, retainedMessage[topicName].toLocal8Bit().data());
+        std::cout << buffer << std::endl;
+        send(socket, buffer, strlen(buffer), 0);
     }
 }
 
