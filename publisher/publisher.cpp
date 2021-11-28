@@ -7,6 +7,7 @@
 #include <string.h>
 #include <QMessageBox>
 #include <QTimer>
+#include <QDateTime>
 #include <iostream>
 #include <jsoncpp/json/json.h>
 #include <QCloseEvent>
@@ -174,4 +175,59 @@ void publisher::on_checkBox_2_stateChanged(int arg1)
 void publisher::on_tableWidget_cellChanged(int row, int column)
 {
     publisher::thread->customData[ui->tableWidget->verticalHeaderItem(row)->text()] = ui->tableWidget->item(row, 0)->text();
+}
+
+void publisher::on_pushButton_6_clicked()
+{
+    ui->pushButton_2->setDisabled(false);
+    if (ui->checkBox->isChecked()) thread->flag = "retain";
+    if (thread->topicRegistered && thread->topic != ui->lineEdit->text().toStdString()) {
+        thread->stopped = true;
+        Json::Value obj;
+        obj["command"] = "STOP PUBLISHING";
+        obj["topic"] = thread->topic;
+        Json::StyledWriter styledWriter;
+        std::string jsonString = styledWriter.write(obj);
+        char json[1024];
+        memset(json, 0, 1024);
+        strcpy(json, jsonString.c_str());
+        send(sock, json, sizeof(json), 0);
+        thread->topicRegistered = false;
+    }
+    thread->topic = ui->lineEdit->text().toStdString();
+    if (!thread->topicRegistered) {
+        Json::Value obj;
+        obj["command"] = "START PUBLISHING";
+        obj["topic"] = thread->topic;
+        Json::StyledWriter styledWriter;
+        std::string jsonString = styledWriter.write(obj);
+        char json[1024];
+        memset(json, 0, 1024);
+        strcpy(json, jsonString.c_str());
+        send(sock, json, sizeof(json), 0);
+        thread->topicRegistered = true;
+    }
+    Json::Value jdata, obj;
+    jdata["timestamp"] = QDateTime::currentMSecsSinceEpoch();
+    if (thread->automaticData) {
+        jdata["value"] = rand() % 1000;
+    }
+    else {
+        for(std::map<QString, QString>::iterator iter = thread->customData.begin(); iter != thread->customData.end(); ++iter) {
+            QString key =  iter->first;
+            QString value = iter->second;
+            jdata[key.toStdString()] = value.toStdString();
+        }
+    }
+    obj["command"] = "PUBLISH";
+    obj["topic"] = thread->topic;
+    obj["data"] = jdata;
+    obj["flag"] = thread->flag;
+    Json::StyledWriter styledWriter;
+    std::string jsonString = styledWriter.write(obj);
+    char json[1024];
+    memset(json, 0, 1024);
+    strcpy(json, jsonString.c_str());
+    send(sock, json, sizeof(json), 0);
+    this->ui->label_3->setText(QString::fromStdString(jsonString));
 }
