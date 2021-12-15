@@ -21,8 +21,8 @@ publisher::publisher(QWidget *parent)
     , ui(new Ui::publisher)
 {
     ui->setupUi(this);
-    ui->pushButton_5->setDisabled(true);
-    ui->pushButton_2->setDisabled(true);
+    ui->pauseButton->setDisabled(true);
+    ui->stopButton->setDisabled(true);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableWidget->verticalHeaderItem(0)->setText("data");
     connect( ui->tableWidget->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(sectionClicked(int)));
@@ -68,7 +68,7 @@ publisher::~publisher()
 }
 
 void publisher::closeEvent(QCloseEvent *event) {
-    if (!thread->stopped) ui->pushButton_2->click();
+    if (!thread->stopped) ui->stopButton->click();
     thread->stopped = true;
     thread->exit();
     thread->terminate();
@@ -99,13 +99,13 @@ void publisher::onSendMessage(QString message) {
     this->ui->label_3->setText(message);
 }
 
-void publisher::on_pushButton_clicked()
+void publisher::on_startButton_clicked()
 {
-    ui->pushButton_5->setDisabled(false);
-    ui->pushButton_2->setDisabled(false);
+    ui->pauseButton->setDisabled(false);
+    ui->stopButton->setDisabled(false);
     ui->groupBox_2->setDisabled(true);
-    ui->pushButton_6->setDisabled(true);
-    ui->pushButton->setDisabled(true);
+    ui->onceButton->setDisabled(true);
+    ui->startButton->setDisabled(true);
     ui->lineEdit->setDisabled(true);
     thread->stopped = thread->paused = false;
     thread->topic = ui->lineEdit->text().toStdString();
@@ -114,7 +114,7 @@ void publisher::on_pushButton_clicked()
     publisher::thread->start();
 }
 
-void publisher::on_pushButton_2_clicked()
+void publisher::on_stopButton_clicked()
 {
     thread->stopped = true;
     Json::Value obj;
@@ -128,20 +128,20 @@ void publisher::on_pushButton_2_clicked()
     send(sock, json, sizeof(json), 0);
     thread->topicRegistered = false;
     ui->groupBox_2->setDisabled(false);
-    ui->pushButton->setDisabled(false);
-    ui->pushButton_6->setDisabled(false);
+    ui->startButton->setDisabled(false);
+    ui->onceButton->setDisabled(false);
     ui->lineEdit->setDisabled(false);
-    ui->pushButton_2->setDisabled(true);
-    ui->pushButton_5->setDisabled(true);
+    ui->stopButton->setDisabled(true);
+    ui->pauseButton->setDisabled(true);
 }
 
-void publisher::on_pushButton_4_clicked()
+void publisher::on_deleteFieldButton_clicked()
 {
     publisher::thread->customData.erase(ui->tableWidget->verticalHeaderItem(ui->tableWidget->currentRow())->text());
     ui->tableWidget->removeRow(ui->tableWidget->currentRow());
 }
 
-void publisher::on_pushButton_3_clicked()
+void publisher::on_newFieldButton_clicked()
 {
     bool ok;
     QString text = QInputDialog::getText(this, tr("Create new data field"),
@@ -155,20 +155,20 @@ void publisher::on_pushButton_3_clicked()
     }
 }
 
-void publisher::on_pushButton_5_clicked()
+void publisher::on_pauseButton_clicked()
 {
     thread->paused = true;
-    ui->pushButton->setDisabled(false);
-    ui->pushButton_6->setDisabled(false);
+    ui->startButton->setDisabled(false);
+    ui->onceButton->setDisabled(false);
     ui->groupBox_2->setDisabled(false);
-    ui->pushButton_5->setDisabled(true);
+    ui->pauseButton->setDisabled(true);
 }
 
-void publisher::on_checkBox_2_stateChanged(int arg1)
+void publisher::on_checkBox_stateChanged(int arg1)
 {
     ui->tableWidget->setDisabled(ui->checkBox_2->isChecked());
-    ui->pushButton_3->setDisabled(ui->checkBox_2->isChecked());
-    ui->pushButton_4->setDisabled(ui->checkBox_2->isChecked());
+    ui->newFieldButton->setDisabled(ui->checkBox_2->isChecked());
+    ui->deleteFieldButton->setDisabled(ui->checkBox_2->isChecked());
     publisher::thread->automaticData = ui->checkBox_2->isChecked();
 }
 
@@ -177,9 +177,9 @@ void publisher::on_tableWidget_cellChanged(int row, int column)
     publisher::thread->customData[ui->tableWidget->verticalHeaderItem(row)->text()] = ui->tableWidget->item(row, 0)->text();
 }
 
-void publisher::on_pushButton_6_clicked()
+void publisher::on_onceButton_clicked()
 {
-    ui->pushButton_2->setDisabled(false);
+    ui->startButton->setDisabled(false);
     if (ui->checkBox->isChecked()) thread->flag = "retain";
     else thread->flag = "";
     if (thread->topicRegistered && thread->topic != ui->lineEdit->text().toStdString()) {

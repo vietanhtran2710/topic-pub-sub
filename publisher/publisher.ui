@@ -43,7 +43,7 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="startButton">
          <property name="text">
           <string>Start</string>
          </property>
@@ -54,7 +54,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_5">
+        <widget class="QPushButton" name="pauseButton">
          <property name="text">
           <string>Pause</string>
          </property>
@@ -65,7 +65,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="stopButton">
          <property name="text">
           <string>Stop</string>
          </property>
@@ -76,7 +76,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_6">
+        <widget class="QPushButton" name="onceButton">
          <property name="text">
           <string>Once</string>
          </property>
@@ -118,14 +118,14 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
-            <widget class="QPushButton" name="pushButton_3">
+            <widget class="QPushButton" name="newFieldButton">
              <property name="text">
               <string>New</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_4">
+            <widget class="QPushButton" name="deleteFieldButton">
              <property name="text">
               <string>Delete</string>
              </property>

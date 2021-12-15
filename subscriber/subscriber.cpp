@@ -21,7 +21,7 @@ subscriber::subscriber(QWidget *parent)
     model = new QStringListModel(this);
     ui->listView->setModel(model);
     ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->pushButton_2->setDisabled(true);
+    ui->stopButton->setDisabled(true);
     subscriber::currentTopic = "";
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -68,7 +68,7 @@ subscriber::subscriber(QWidget *parent)
         std::string json(buffer);
         read.parse(json, data);
         if (data["status"] == "CONNECTACK") {
-            ui->pushButton_3->click();
+            ui->refreshButton->click();
         }
     }
     subscriber::displaying = false;
@@ -80,7 +80,7 @@ subscriber::~subscriber()
 }
 
 void subscriber::closeEvent(QCloseEvent *event) {
-    if (!thread->stopped) ui->pushButton_2->click();
+    if (!thread->stopped) ui->stopButton->click();
     subscriber::thread->stopped = true;
     thread->stopped = true;
     thread->exit();
@@ -102,7 +102,7 @@ void subscriber::onNewMessage(QString message) {
     displaying = false;
 }
 
-void subscriber::on_pushButton_clicked()
+void subscriber::on_startButton_clicked()
 {
     if (ui->lineEdit->text() != "") {
         subscriber::currentTopic = ui->lineEdit->text().toStdString();
@@ -115,13 +115,13 @@ void subscriber::on_pushButton_clicked()
     }
     subscriber::thread->topic = subscriber::currentTopic;
     subscriber::thread->stopped = false;
-    ui->pushButton_3->setDisabled(true);
-    ui->pushButton->setDisabled(true);
-    ui->pushButton_2->setDisabled(false);
+    ui->refreshButton->setDisabled(true);
+    ui->startButton->setDisabled(true);
+    ui->stopButton->setDisabled(false);
     subscriber::thread->start();
 }
 
-void subscriber::on_pushButton_2_clicked()
+void subscriber::on_stopButton_clicked()
 {
     subscriber::thread->stopped = true;
     subscriber::thread->terminate();
@@ -133,12 +133,12 @@ void subscriber::on_pushButton_2_clicked()
     char json[1024] = {0};
     strcpy(json, jsonString.c_str());
     send(sock, json, sizeof(json), 0);
-    ui->pushButton->setDisabled(false);
-    ui->pushButton_3->setDisabled(false);
-    ui->pushButton_2->setDisabled(true);
+    ui->startButton->setDisabled(false);
+    ui->refreshButton->setDisabled(false);
+    ui->stopButton->setDisabled(true);
 }
 
-void subscriber::on_pushButton_3_clicked()
+void subscriber::on_refreshButton_clicked()
 {
     Json::Value obj;
     obj["command"] = "GET ALL TOPICS";
