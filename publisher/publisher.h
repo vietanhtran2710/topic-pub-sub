@@ -36,11 +36,15 @@ private slots:
 
     void on_pauseButton_clicked();
 
-    void on_checkBox_stateChanged(int arg1);
+    void on_randomDataCheckBox_stateChanged(int arg1);
 
     void on_tableWidget_cellChanged(int row, int column);
 
     void on_onceButton_clicked();
+
+    std::string checkTopic(QString topic);
+
+    void on_retainCheckBox_stateChanged(int arg1);
 
 private:
     Ui::publisher *ui;

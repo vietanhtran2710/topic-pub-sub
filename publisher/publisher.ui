@@ -100,14 +100,14 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="retainCheckBox">
              <property name="text">
               <string>Retain Flag</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_2">
+            <widget class="QCheckBox" name="randomDataCheckBox">
              <property name="text">
               <string>Automatic Random Data</string>
              </property>

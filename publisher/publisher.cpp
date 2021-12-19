@@ -16,6 +16,8 @@
 
 #define PORT 8080
 
+using namespace std;
+
 publisher::publisher(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::publisher)
@@ -58,7 +60,7 @@ publisher::publisher(QWidget *parent)
     }
     publisher::thread = new Thread(this, sock, "", "");
     connect(thread, SIGNAL(SendMessage(QString)), this, SLOT(onSendMessage(QString)));
-    ui->checkBox_2->setChecked(true);
+    ui->randomDataCheckBox->setChecked(true);
     ui->tableWidget->setItem(0, 0, new QTableWidgetItem("0"));
 }
 
@@ -99,8 +101,36 @@ void publisher::onSendMessage(QString message) {
     this->ui->label_3->setText(message);
 }
 
+string publisher::checkTopic(QString topic) {
+    QStringList levels = topic.split(QLatin1Char('/'));
+    if (levels.length() < 2) return "Error 0";
+    for (int i = 0; i < levels.length(); i++) {
+        if (levels[i] == "") {
+            return "Error 1";
+        }
+    }
+    return topic.toStdString();
+}
+
 void publisher::on_startButton_clicked()
 {
+    std::string validTopic = checkTopic(ui->lineEdit->text());
+    if ((validTopic == "Error 0") || (validTopic == "Error 1")) {
+        QString info;
+        if (validTopic == "Error 0") {
+            info = "[Error] Topic must contains at least 2 levels seperated by /";
+        }
+        else {
+            info = "[Error] Level cannot be empty";
+        }
+        QMessageBox *alert = new QMessageBox(
+            QMessageBox::Warning,
+            "Error",
+            info
+        );
+        alert->show();
+        return;
+    }
     ui->pauseButton->setDisabled(false);
     ui->stopButton->setDisabled(false);
     ui->groupBox_2->setDisabled(true);
@@ -108,8 +138,8 @@ void publisher::on_startButton_clicked()
     ui->startButton->setDisabled(true);
     ui->lineEdit->setDisabled(true);
     thread->stopped = thread->paused = false;
-    thread->topic = ui->lineEdit->text().toStdString();
-    if (ui->checkBox->isChecked()) thread->flag = "retain";
+    thread->topic = validTopic;
+    if (ui->retainCheckBox->isChecked()) thread->flag = "retain";
     else thread->flag = "";
     publisher::thread->start();
 }
@@ -164,12 +194,12 @@ void publisher::on_pauseButton_clicked()
     ui->pauseButton->setDisabled(true);
 }
 
-void publisher::on_checkBox_stateChanged(int arg1)
+void publisher::on_randomDataCheckBox_stateChanged(int arg1)
 {
-    ui->tableWidget->setDisabled(ui->checkBox_2->isChecked());
-    ui->newFieldButton->setDisabled(ui->checkBox_2->isChecked());
-    ui->deleteFieldButton->setDisabled(ui->checkBox_2->isChecked());
-    publisher::thread->automaticData = ui->checkBox_2->isChecked();
+    ui->tableWidget->setDisabled(ui->randomDataCheckBox->isChecked());
+    ui->newFieldButton->setDisabled(ui->randomDataCheckBox->isChecked());
+    ui->deleteFieldButton->setDisabled(ui->randomDataCheckBox->isChecked());
+    publisher::thread->automaticData = ui->randomDataCheckBox->isChecked();
 }
 
 void publisher::on_tableWidget_cellChanged(int row, int column)
@@ -180,9 +210,9 @@ void publisher::on_tableWidget_cellChanged(int row, int column)
 void publisher::on_onceButton_clicked()
 {
     ui->startButton->setDisabled(false);
-    if (ui->checkBox->isChecked()) thread->flag = "retain";
+    if (ui->retainCheckBox->isChecked()) thread->flag = "retain";
     else thread->flag = "";
-    if (thread->topicRegistered && thread->topic != ui->lineEdit->text().toStdString()) {
+    if ((thread->topicRegistered) && (thread->topic != ui->lineEdit->text().toStdString())) {
         thread->stopped = true;
         Json::Value obj;
         obj["command"] = "STOP PUBLISHING";
@@ -195,7 +225,24 @@ void publisher::on_onceButton_clicked()
         send(sock, json, sizeof(json), 0);
         thread->topicRegistered = false;
     }
-    thread->topic = ui->lineEdit->text().toStdString();
+    std::string validTopic = checkTopic(ui->lineEdit->text());
+    if ((validTopic == "Error 0") || (validTopic == "Error 1")) {
+        QString info;
+        if (validTopic == "Error 0") {
+            info = "[Error] Topic must contains at least 2 levels seperated by /";
+        }
+        else {
+            info = "[Error] Level cannot be empty";
+        }
+        QMessageBox *alert = new QMessageBox(
+            QMessageBox::Warning,
+            "Error",
+            info
+        );
+        alert->show();
+        return;
+    }
+    thread->topic = validTopic;
     if (!thread->topicRegistered) {
         Json::Value obj;
         obj["command"] = "START PUBLISHING";
@@ -231,4 +278,9 @@ void publisher::on_onceButton_clicked()
     strcpy(json, jsonString.c_str());
     send(sock, json, sizeof(json), 0);
     this->ui->label_3->setText(QString::fromStdString(jsonString));
+}
+
+void publisher::on_retainCheckBox_stateChanged(int arg1)
+{
+
 }
