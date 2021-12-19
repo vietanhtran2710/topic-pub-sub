@@ -12,7 +12,7 @@ public:
     std::string topic; int socket;
     void run();
 signals:
-    void NewMessage(QString);
+    void NewMessage(QString, QString);
 };
 
 #endif // THREAD_H

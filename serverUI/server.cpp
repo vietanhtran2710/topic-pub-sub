@@ -11,6 +11,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <algorithm>
+#include <jsoncpp/json/json.h>
 
 server::server(QWidget *parent)
     : QMainWindow(parent)
@@ -62,16 +63,25 @@ void server::onNewClient(int socket) {
 
 void server::onNewMessage(QString topicName, QString message, QString retainFlag) {
     std::cout << retainFlag.toStdString() << std::endl;
-    if (topicSubscriber.find(topicName) != topicSubscriber.end()) {
-        for (int i = 0; i < topicSubscriber[topicName]->size(); i++) {
-            int socket = topicSubscriber[topicName]->at(i);
-            char sendBuffer[1024] = {0};
-            strcpy(sendBuffer, message.toLocal8Bit().data());
-            send(socket, sendBuffer, strlen(sendBuffer), 0);
+    QStringList topicLevels = topicName.split(QLatin1Char('/'));
+    QString currentTopic = topicLevels[0];
+    for (int i = 0; i < topicLevels.length(); i++) {
+        if (topicSubscriber.find(currentTopic) != topicSubscriber.end()) {
+            for (int i = 0; i < topicSubscriber[currentTopic]->size(); i++) {
+                int socket = topicSubscriber[currentTopic]->at(i);
+                char sendBuffer[1024] = {0};
+                Json::Value obj;
+                obj["message"] = message.toStdString();
+                obj["topic"] = topicName.toStdString();
+                Json::StyledWriter styledWriter;
+                std::string jsonString = styledWriter.write(obj);
+                strcpy(sendBuffer, jsonString.c_str());
+                send(socket, sendBuffer, strlen(sendBuffer), 0);
+            }
         }
+        if (i + 1 < topicLevels.length()) currentTopic += "/" + topicLevels[i + 1];
     }
     if (retainFlag.toStdString() == "retain") {
-        std::cout << "retained" << std::endl;
         retainedMessage[topicName] = message;
     }
 }

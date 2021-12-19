@@ -22,7 +22,13 @@ void Thread::run() {
     while(!stopped) {
         memset(buffer, 1024, 0);
         recv(this->socket, buffer, sizeof(buffer), 0);
-        emit NewMessage(QString::fromUtf8(buffer));
+        Json::Value data; Json::Reader read;
+        std::string json(buffer);
+        read.parse(json, data);
+        Json::Value obj;
+        QString topic = QString::fromStdString(data["topic"].toStyledString());
+        QString message = QString::fromStdString(data["message"].toStyledString());
+        emit NewMessage(topic, message);
     }
     return;
 }

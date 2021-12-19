@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <jsoncpp/json/json.h>
 #include <iostream>
+#include <map>
 
 #define PORT 8080
 
@@ -18,9 +19,12 @@ subscriber::subscriber(QWidget *parent)
     , ui(new Ui::subscriber)
 {
     ui->setupUi(this);
-    model = new QStringListModel(this);
-    ui->listView->setModel(model);
-    ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    availableTopicsModel = new QStringListModel(this);
+    ui->availableTopicsList->setModel(availableTopicsModel);
+    ui->availableTopicsList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    receivedTopicsModel = new QStringListModel(this);
+    ui->receivedTopicsList->setModel(receivedTopicsModel);
+    ui->receivedTopicsList->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->stopButton->setDisabled(true);
     subscriber::currentTopic = "";
 
@@ -52,7 +56,7 @@ subscriber::subscriber(QWidget *parent)
         QTimer::singleShot(0, this, SLOT(close()));
     }
     subscriber::thread = new Thread(this, sock, "");
-    connect(thread, SIGNAL(NewMessage(QString)), this, SLOT(onNewMessage(QString)));
+    connect(thread, SIGNAL(NewMessage(QString, QString)), this, SLOT(onNewMessage(QString, QString)));
     Json::Value obj;
     obj["command"] = "CONNECT";
     Json::StyledWriter styledWriter; std::string jsonString = styledWriter.write(obj);
@@ -95,11 +99,22 @@ void subscriber::closeEvent(QCloseEvent *event) {
     ::close(sock); event->accept();
 }
 
-void subscriber::onNewMessage(QString message) {
-    while(displaying);
-    displaying = true;
-    ui->label_4->setText(message);
-    displaying = false;
+void subscriber::onNewMessage(QString topic, QString message) {
+    topic.remove(0, 1); topic.remove(topic.length() - 2, 1);
+    message.remove(0, 1); message.remove(message.length() - 2, 1);
+    if (receivedMessages.find(topic) == receivedMessages.end()) {
+        subscriber::receivedTopicsModel->insertRow(receivedTopicsModel->rowCount());
+        std::cout << receivedTopicsModel->rowCount() << std::endl;
+        QModelIndex index = receivedTopicsModel->index(receivedTopicsModel->rowCount()-1);
+        subscriber::receivedTopicsModel->setData(index, topic);
+    }
+    subscriber::receivedMessages[topic] = message;
+    if (topic == selectedTopic) {
+        while(displaying);
+        displaying = true;
+        ui->label_4->setText(message.replace("\\n","\n").replace("\\\"", "\""));
+        displaying = false;
+    }
 }
 
 void subscriber::on_startButton_clicked()
@@ -108,7 +123,7 @@ void subscriber::on_startButton_clicked()
         subscriber::currentTopic = ui->lineEdit->text().toStdString();
     }
     else {
-        QString newTopic = ui->listView->currentIndex().data(Qt::DisplayRole).toString();
+        QString newTopic = ui->availableTopicsList->currentIndex().data(Qt::DisplayRole).toString();
         if (newTopic != "") {
             subscriber::currentTopic = newTopic.toStdString();
         }
@@ -152,5 +167,15 @@ void subscriber::on_refreshButton_clicked()
     std::string str(buffer);
     QString result = QString::fromStdString(str);
     QStringList topics = result.split(";");
-    model->setStringList(topics);
+    subscriber::availableTopicsModel->setStringList(topics);
+}
+
+void subscriber::on_receivedTopicsList_clicked(const QModelIndex &index)
+{
+    QModelIndex _index = ui->receivedTopicsList->currentIndex();
+    subscriber::selectedTopic = _index.data(Qt::DisplayRole).toString();
+    while(displaying);
+    displaying = true;
+    ui->label_4->setText(subscriber::receivedMessages[selectedTopic]);
+    displaying = false;
 }
