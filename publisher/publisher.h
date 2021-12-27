@@ -44,8 +44,6 @@ private slots:
 
     std::string checkTopic(QString topic);
 
-    void on_retainCheckBox_stateChanged(int arg1);
-
 private:
     Ui::publisher *ui;
     int timestamp;

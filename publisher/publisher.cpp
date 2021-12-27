@@ -23,6 +23,7 @@ publisher::publisher(QWidget *parent)
     , ui(new Ui::publisher)
 {
     ui->setupUi(this);
+    QMainWindow::setWindowIcon(QIcon("../icons/ear.png"));
     ui->pauseButton->setDisabled(true);
     ui->stopButton->setDisabled(true);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -278,9 +279,4 @@ void publisher::on_onceButton_clicked()
     strcpy(json, jsonString.c_str());
     send(sock, json, sizeof(json), 0);
     this->ui->label_3->setText(QString::fromStdString(jsonString));
-}
-
-void publisher::on_retainCheckBox_stateChanged(int arg1)
-{
-
 }
