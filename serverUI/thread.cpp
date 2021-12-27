@@ -84,7 +84,6 @@ void Thread::run() {
                     send(this->connSocket, sendBuffer, strlen(sendBuffer), 0);
                 }
                 else if (data["command"] == "SUBSCRIBE") {
-                    std::cout << "subs" << std::endl;
                     emit this->NewSubscriber(QString::fromStdString(data["topic"].asString()), this->connSocket);
                 }
                 else if (data["command"] == "STOP SUBSCRIBING") {
@@ -95,7 +94,6 @@ void Thread::run() {
                     emit this->GetTopic(this->connSocket);
                 }
             }
-            else std::cout << "Not JSON\n";
         }
         close(this->connSocket);
         return;

@@ -18,6 +18,7 @@ server::server(QWidget *parent)
     , ui(new Ui::server)
 {
     ui->setupUi(this);
+    QMainWindow::setWindowIcon(QIcon("../icons/broker.png"));
     model = new QStandardItemModel(0, 3, this);
     QStringList labels; labels << "Topic" << "Number of Publishers" << "Number of Subscriber";
     model->setHorizontalHeaderLabels(labels);
@@ -62,7 +63,6 @@ void server::onNewClient(int socket) {
 }
 
 void server::onNewMessage(QString topicName, QString message, QString retainFlag) {
-    std::cout << retainFlag.toStdString() << std::endl;
     QStringList topicLevels = topicName.split(QLatin1Char('/'));
     QString currentTopic = topicLevels[0];
     for (int i = 0; i < topicLevels.length(); i++) {
@@ -108,7 +108,6 @@ void server::onNewSubscriber(QString topicName, int socket) {
     if (retainedMessage.find(topicName) != retainedMessage.end()) {
         char buffer[1024] = {0};
         strcpy(buffer, retainedMessage[topicName].toLocal8Bit().data());
-        std::cout << buffer << std::endl;
         send(socket, buffer, strlen(buffer), 0);
     }
 }
@@ -137,10 +136,7 @@ void server::onNewTopic(QString topicName) {
 }
 
 void server::onQuitTopic(QString topicName) {
-    std::cout << "Quit topic" << std::endl;
-    std::cout << topicPublishers[topicName] << std::endl;
     topicPublishers[topicName]--;
-    std::cout << topicPublishers[topicName] << std::endl;
     QStandardItem *findResult = model->findItems(topicName)[0];
     if (topicPublishers[topicName] == 0) {
         if (topicSubscriber.find(topicName) == topicSubscriber.end())
@@ -192,7 +188,6 @@ void server::onGetTopic(int _socket) {
     }
     char sendBuffer[1024] = {0};
     strcpy(sendBuffer, topics.c_str());
-    std::cout << topics << std::endl;
     send(_socket, sendBuffer, strlen(sendBuffer), 0);
 }
 
