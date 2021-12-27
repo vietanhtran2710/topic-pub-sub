@@ -11,7 +11,6 @@ Thread::Thread(QObject *parent, int _socket, std::string _topic): QThread(parent
 }
 
 void Thread::run() {
-    std::cout << "Started" << std::endl;
     Json::Value obj; Json::StyledWriter styledWriter;
     obj["command"] = "SUBSCRIBE"; obj["topic"] = this->topic;
     std::string jsonString = styledWriter.write(obj);

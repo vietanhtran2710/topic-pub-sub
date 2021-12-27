@@ -33,6 +33,8 @@ private slots:
 
     void on_receivedTopicsList_clicked(const QModelIndex &index);
 
+    void on_clearButton_clicked();
+
 private:
     Ui::subscriber *ui;
     int sock = 0;

@@ -19,6 +19,7 @@ subscriber::subscriber(QWidget *parent)
     , ui(new Ui::subscriber)
 {
     ui->setupUi(this);
+    QMainWindow::setWindowIcon(QIcon("../icons/speaker.png"));
     availableTopicsModel = new QStringListModel(this);
     ui->availableTopicsList->setModel(availableTopicsModel);
     ui->availableTopicsList->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -65,7 +66,6 @@ subscriber::subscriber(QWidget *parent)
     send(sock, json, sizeof(json), 0);
     char buffer[1024] = {0};
     recv(sock, buffer, sizeof(buffer), 0);
-    std::cout << buffer << std::endl;
     if (strncmp(buffer, "{\n", 2)==0)
     {
         Json::Value data; Json::Reader read;
@@ -104,7 +104,6 @@ void subscriber::onNewMessage(QString topic, QString message) {
     message.remove(0, 1); message.remove(message.length() - 2, 1);
     if (receivedMessages.find(topic) == receivedMessages.end()) {
         subscriber::receivedTopicsModel->insertRow(receivedTopicsModel->rowCount());
-        std::cout << receivedTopicsModel->rowCount() << std::endl;
         QModelIndex index = receivedTopicsModel->index(receivedTopicsModel->rowCount()-1);
         subscriber::receivedTopicsModel->setData(index, topic);
     }
@@ -163,7 +162,6 @@ void subscriber::on_refreshButton_clicked()
     send(sock, json, sizeof(json), 0);
     char buffer[1024] = {0};
     recv(sock, buffer, sizeof(buffer), 0);
-    std::cout << buffer << std::endl;
     std::string str(buffer);
     QString result = QString::fromStdString(str);
     QStringList topics = result.split(";");
@@ -176,6 +174,12 @@ void subscriber::on_receivedTopicsList_clicked(const QModelIndex &index)
     subscriber::selectedTopic = _index.data(Qt::DisplayRole).toString();
     while(displaying);
     displaying = true;
-    ui->label_4->setText(subscriber::receivedMessages[selectedTopic]);
+    ui->label_4->setText(subscriber::receivedMessages[selectedTopic].replace("\\n","\n").replace("\\\"", "\""));
     displaying = false;
+}
+
+void subscriber::on_clearButton_clicked()
+{
+    receivedTopicsModel->removeRows( 0, receivedTopicsModel->rowCount() );
+    receivedMessages.clear();
 }
